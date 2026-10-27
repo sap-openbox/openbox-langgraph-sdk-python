@@ -2,6 +2,10 @@
 
 ## 1.3.0
 
+- Send `WorkflowStarted` before the user-prompt `SignalReceived`. Core creates
+  the session from `WorkflowStarted` and holds any other event for the run until
+  it exists (SessionNotReady), so a signal sent first blocked the run and failed
+  it with HTTP 500.
 - Upgrade `openbox-sdk-python` to `[http]>=1.5.0` for OpenRouter routing
   provenance on model calls. Refresh the locked LangChain/LangGraph stack.
 - Raise a pre-screen BLOCK/HALT to the caller even when the closing
