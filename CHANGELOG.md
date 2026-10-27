@@ -2,6 +2,10 @@
 
 ## 1.3.0
 
+- Do not wait on a REQUIRE_APPROVAL returned for a completed tool or LLM call
+  (`tool_end` / `llm_end`). The call already ran, so the approval could not gate
+  it and only stalled the run until someone approved it; it is now logged and
+  the run continues, the same as in the LangChain and Temporal SDKs.
 - Send `WorkflowStarted` before the user-prompt `SignalReceived`. Core creates
   the session from `WorkflowStarted` and holds any other event for the run until
   it exists (SessionNotReady), so a signal sent first blocked the run and failed
