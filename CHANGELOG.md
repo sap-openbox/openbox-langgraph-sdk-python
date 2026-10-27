@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+
+- Upgrade `openbox-sdk-python` to `[http]>=1.5.0` for OpenRouter routing
+  provenance on model calls. Refresh the locked LangChain/LangGraph stack.
+- Raise a pre-screen BLOCK/HALT to the caller even when the closing
+  `WorkflowCompleted` is rejected (Core closes a halted session itself and
+  answers 400) or `send_chain_end_event` is off; previously the 400 replaced
+  the verdict, or the pre-screen dropped the stop.
+
 ## 1.2.0
 
 - Resume approved tools and operation hooks in place, preserving their activity IDs
