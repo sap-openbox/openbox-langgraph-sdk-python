@@ -518,26 +518,29 @@ class OpenBoxLangGraphHandler:
             enforcement_error = exc
             result = None  # type: ignore[assignment]
 
-        if (
-            enforcement_error is not None
-            and workflow_started_sent
-            and self._config.send_chain_end_event
-        ):
-            wf_end = LangChainGovernanceEvent(
-                source="workflow-telemetry",
-                event_type="WorkflowCompleted",
-                workflow_id=workflow_id,
-                run_id=run_id,
-                workflow_type=self._config.agent_name or "LangGraphRun",
-                task_queue=self._config.task_queue,
-                timestamp=rfc3339_now(),
-                session_id=self._config.session_id,
-                activity_id=f"{run_id}-wf",
-                activity_type=self._config.agent_name or "LangGraphRun",
-                status="failed",
-                error=str(enforcement_error),
-            )
-            await self._client.evaluate_event(wf_end)
+        if enforcement_error is not None:
+            if workflow_started_sent and self._config.send_chain_end_event:
+                wf_end = LangChainGovernanceEvent(
+                    source="workflow-telemetry",
+                    event_type="WorkflowCompleted",
+                    workflow_id=workflow_id,
+                    run_id=run_id,
+                    workflow_type=self._config.agent_name or "LangGraphRun",
+                    task_queue=self._config.task_queue,
+                    timestamp=rfc3339_now(),
+                    session_id=self._config.session_id,
+                    activity_id=f"{run_id}-wf",
+                    activity_type=self._config.agent_name or "LangGraphRun",
+                    status="failed",
+                    error=str(enforcement_error),
+                )
+                # Best effort: a HALT has already closed the session on Core,
+                # which rejects this event — that rejection must not replace
+                # the verdict the caller is owed.
+                try:
+                    await self._client.evaluate_event(wf_end)
+                except Exception:
+                    _logger.debug("closing event after pre-screen stop failed", exc_info=True)
             raise enforcement_error
 
         if result and result.requires_hitl:
